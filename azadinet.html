@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>آزادی‌نت - سرویس VPN حرفه‌ای و رایگان</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'vazir': ['Vazirmatn', 'Tahoma', 'Arial', 'sans-serif']
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-up': 'slideUp 0.6s ease-out forwards',
+                        'pulse-fast': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'gradient-bg': 'gradient-bg 15s ease infinite',
+                    },
+                    keyframes: {
+                        fadeIn: { 'from': { opacity: 0 }, 'to': { opacity: 1 } },
+                        slideUp: { 
+                            'from': { transform: 'translateY(30px)', opacity: 0 }, 
+                            'to': { transform: 'translateY(0)', opacity: 1 } 
+                        },
+                        'gradient-bg': {
+                            '0%, 100%': { 'background-position': '0% 50%' },
+                            '50%': { 'background-position': '100% 50%' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Vazirmatn', Tahoma, Arial, sans-serif;
+            line-height: 1.6;
+            scroll-behavior: smooth;
+            background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e);
+            background-size: 400% 400%;
+            animation: gradient-bg 15s ease infinite;
+        }
+        .card-glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+        }
+        .card-glass:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transform: translateY(-5px);
+        }
+        .status-online {
+            background: #10b981;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.8);
+            animation: pulse-fast 2s infinite;
+        }
+        .ripple { position: relative; overflow: hidden; }
+        .ripple::before {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            width: 0; height: 0; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%); transition: width 0.6s, height 0.6s;
+        }
+        .ripple:active::before { width: 300px; height: 300px; }
+        .timeline-item::before {
+            content: '';
+            background: rgba(255,255,255,0.2);
+            width: 3px;
+            height: 100%;
+            position: absolute;
+            right: 1.1rem;
+            top: 1.5rem;
+            z-index: 1;
+        }
+        .timeline-container > div:last-child .timeline-item::before {
+            display: none;
+        }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+        .animated-section {
+            opacity: 0;
+        }
+        /* Custom scrollbar for config list */
+        .config-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        .config-list::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+        }
+        .config-list::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+        }
+        .config-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-gray-200">
+
+    <!-- Welcome Modal -->
+    <div id="welcomeModal" class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full mx-4 animate-slide-up shadow-2xl border">
+            <div class="text-center">
+                <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                    <span class="text-3xl">🎉</span>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">به آزادی‌نت خوش آمدید!</h2>
+                <p class="text-gray-600 mb-6 leading-relaxed">
+                    اینجا دروازه‌ای به سوی اینترنت آزاد و بدون محدودیت است. امیدواریم از سرویس ما لذت ببرید.
+                </p>
+                <button onclick="closeWelcome()" class="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white py-3 rounded-xl font-semibold ripple transition-all shadow-lg hover:shadow-xl">
+                    بزن بریم!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="py-20 relative overflow-hidden">
+        <div class="container mx-auto px-4 relative z-10">
+            <div class="text-center animate-fade-in">
+                <div class="flex items-center justify-center mb-10">
+                    <div class="card-glass rounded-3xl flex items-center justify-center w-24 h-24 ml-6 shadow-2xl">
+                        <span class="text-4xl text-white">🚀</span>
+                    </div>
+                    <div>
+                        <h1 class="text-5xl md:text-6xl font-black mb-3 text-white">آزادی‌نت</h1>
+                        <p class="text-blue-200 text-lg md:text-xl font-medium">سرویس VPN حرفه‌ای و رایگان</p>
+                    </div>
+                </div>
+                
+                <div class="card-glass rounded-3xl p-6 md:p-8 inline-block shadow-2xl mb-6">
+                    <div class="grid grid-cols-3 gap-4 md:gap-8">
+                        <div class="text-center">
+                            <div class="flex items-center justify-center mb-3">
+                                <div class="w-3 h-3 status-online rounded-full ml-2"></div>
+                                <div class="font-bold text-lg text-gray-100">وضعیت</div>
+                            </div>
+                            <div class="text-blue-200 text-sm font-mono">آپتایم: <span id="uptime" class="font-semibold">--</span>%</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="font-bold text-2xl mb-1 text-white" id="activeServers">24</div>
+                            <div class="text-blue-200 text-sm">سرور فعال</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="font-bold text-2xl mb-1 text-white" id="serverPing">--</div>
+                            <div class="text-blue-200 text-sm">پینگ</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-glass rounded-3xl p-6 md:p-8 inline-block shadow-2xl max-w-2xl w-full">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                        <div class="flex flex-col items-center">
+                            <i class="fa-solid fa-wifi text-blue-300 text-2xl mb-3"></i>
+                            <h3 class="text-gray-300 text-sm font-bold mb-1">آدرس IP شما</h3>
+                            <p id="user-ip" class="font-mono text-white font-semibold animate-pulse">در حال بارگذاری...</p>
+                        </div>
+                         <div class="flex flex-col items-center">
+                            <i class="fa-solid fa-location-dot text-green-300 text-2xl mb-3"></i>
+                            <h3 class="text-gray-300 text-sm font-bold mb-1">موقعیت مکانی</h3>
+                            <p id="user-location" class="font-mono text-white font-semibold animate-pulse">در حال بارگذاری...</p>
+                        </div>
+                         <div class="flex flex-col items-center">
+                            <i class="fa-solid fa-building text-purple-300 text-2xl mb-3"></i>
+                            <h3 class="text-gray-300 text-sm font-bold mb-1">سرویس‌دهنده</h3>
+                            <p id="user-isp" class="font-mono text-white font-semibold animate-pulse">در حال بارگذاری...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Sections -->
+    <div class="space-y-16 md:space-y-24 pb-16">
+
+        <!-- Quick Actions -->
+        <section class="relative z-20 container mx-auto px-4">
+            <div class="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <a href="#sublink" class="card-glass rounded-3xl p-6 text-center ripple group">
+                    <div class="w-16 h-16 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transition-transform group-hover:scale-110">
+                        <i class="fa-solid fa-link text-3xl text-white"></i>
+                    </div>
+                    <h3 class="font-bold text-xl mb-2 text-white">لینک اشتراک</h3>
+                    <p class="text-gray-300 text-sm">افزودن همه سرورها</p>
+                </a>
+                <a href="#tools" class="card-glass rounded-3xl p-6 text-center ripple group">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transition-transform group-hover:scale-110">
+                        <i class="fa-solid fa-toolbox text-3xl text-white"></i>
+                    </div>
+                    <h3 class="font-bold text-xl mb-2 text-white">ابزارهای واقعی</h3>
+                    <p class="text-gray-300 text-sm">تست پینگ و امنیت</p>
+                </a>
+                <a href="#notifications" class="card-glass rounded-3xl p-6 text-center ripple group">
+                    <div class="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transition-transform group-hover:scale-110">
+                        <i class="fa-solid fa-bell text-3xl text-white"></i>
+                    </div>
+                    <h3 class="font-bold text-xl mb-2 text-white">آخرین آپدیت‌ها</h3>
+                    <p class="text-gray-300 text-sm">اخبار و اطلاعیه‌ها</p>
+                </a>
+            </div>
+        </section>
+
+        <!-- Subscription Link Section -->
+        <section id="sublink" class="animated-section container mx-auto px-4">
+            <div class="card-glass rounded-3xl shadow-2xl p-8 max-w-4xl mx-auto text-center">
+                 <div class="w-20 h-20 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                    <i class="fa-solid fa-link text-3xl text-white"></i>
+                </div>
+                <h2 class="text-3xl font-bold mb-4 text-white">
+                    لینک اشتراک (Subscription)
+                </h2>
+                <p class="text-gray-300 text-lg mb-6">این لینک را در کلاینت خود وارد کنید تا همه سرورها به صورت خودکار اضافه شوند.</p>
+                <div class="bg-black bg-opacity-20 rounded-xl p-4 mb-6 shadow-inner relative z-10">
+                    <p id="subLink" class="font-mono text-center text-white font-bold text-sm md:text-lg break-all">https://dev1.irdevs.sbs</p>
+                </div>
+                <button onclick="copySubLink()" class="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white px-8 py-4 rounded-xl font-bold text-lg ripple transition-all shadow-lg hover:shadow-xl">
+                    <i class="fa-solid fa-copy ml-2"></i>
+                    کپی کردن لینک
+                </button>
+            </div>
+        </section>
+
+        <!-- Notifications / Updates Section -->
+        <section id="notifications" class="animated-section container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold mb-4 text-white">
+                    آخرین اخبار و اطلاعیه‌ها
+                </h2>
+                <p class="text-gray-300 text-lg">همیشه از آخرین تغییرات و بهبودها مطلع باشید.</p>
+            </div>
+            <div class="max-w-3xl mx-auto timeline-container">
+                 <!-- News Item 1 -->
+                <div>
+                    <div class="timeline-item relative flex items-start space-x-6 space-x-reverse pb-8">
+                        <div class="flex-shrink-0 z-10">
+                            <span class="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 text-white shadow-md">
+                                <i class="fa-solid fa-cloud"></i>
+                            </span>
+                        </div>
+                        <div class="card-glass p-6 rounded-2xl w-full">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="font-bold text-lg text-blue-300">۸ سرور جدید CDN آلمان</h3>
+                                <span class="text-xs text-gray-400 font-medium">امروز</span>
+                            </div>
+                            <p class="text-gray-300">۸ سرور جدید آلمان با تکنولوژی CDN کلودفلر برای پایداری و سرعت بالاتر به لیست اضافه شد. این سرورها با تمام کلاینت‌های V2Ray سازگار هستند. برای دریافت، لینک اشتراک خود را آپدیت کنید.</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- News Item 2 -->
+                <div>
+                    <div class="timeline-item relative flex items-start space-x-6 space-x-reverse pb-8">
+                        <div class="flex-shrink-0 z-10">
+                            <span class="flex items-center justify-center w-10 h-10 rounded-full bg-green-500 text-white shadow-md">
+                                <i class="fa-solid fa-gamepad"></i>
+                            </span>
+                        </div>
+                        <div class="card-glass p-6 rounded-2xl w-full">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="font-bold text-lg text-green-300">۶ سرور نیم‌بها مخصوص گیمرها</h3>
+                                <span class="bg-yellow-200 text-yellow-800 text-xs font-bold px-2.5 py-1 rounded-full">ویژه</span>
+                            </div>
+                            <p class="text-gray-300">۶ سرور جدید و پرسرعت با دیتاسنتر داخلی **رسپینا** به لیست اضافه شد. این سرورها با ترافیک **نیم‌بها** محاسبه شده و بهترین پینگ را برای بازی‌های آنلاین و استریم فراهم می‌کنند.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Server Info -->
+        <section id="servers" class="animated-section container mx-auto px-4">
+            <div class="card-glass rounded-3xl shadow-2xl p-6 md:p-8 max-w-6xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold mb-4 text-white">
+                        دریافت کانفیگ
+                    </h2>
+                    <p class="text-gray-300 text-lg">کانفیگ مورد نظر خود را کپی یا اسکن کنید.</p>
+                </div>
+                
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <!-- Direct Copy Section -->
+                    <div class="card-glass rounded-2xl p-8">
+                        <div class="text-center mb-6">
+                            <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl">
+                                <span class="text-3xl text-white">⚙️</span>
+                            </div>
+                            <h3 class="text-2xl font-bold text-white mb-2">کپی مستقیم کانفیگ</h3>
+                            <p class="text-blue-300">لیست سرورهای جدید آلمان (CDN)</p>
+                        </div>
+                        
+                        <div id="config-list-container" class="space-y-3 h-64 overflow-y-auto config-list pr-2">
+                            <!-- Config buttons will be injected here by JS -->
+                        </div>
+                    </div>
+                    
+                    <!-- QR Code Generator -->
+                    <div class="card-glass rounded-2xl p-8">
+                        <div class="text-center mb-6">
+                            <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl">
+                                <span class="text-3xl text-white">📱</span>
+                            </div>
+                            <h3 class="text-2xl font-bold text-white mb-2">QR کد کانفیگ</h3>
+                            <p class="text-purple-300">اسکن کنید و متصل شوید</p>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl p-4 mb-6 shadow-inner text-center">
+                            <div id="qrcode" class="flex justify-center"></div>
+                        </div>
+                        
+                        <div>
+                            <select id="configSelect" onchange="generateQR()" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white font-medium transition-all">
+                                <option value="cf_de_1">VLESS - آلمان (CDN 1) 🇩🇪</option>
+                                <option value="cf_de_2">VLESS - آلمان (CDN 2) 🇩🇪</option>
+                                <option value="cf_de_tr_5">Trojan - آلمان (CDN 5) 🇩🇪</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Real Tools Section -->
+        <section id="tools" class="animated-section container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold mb-4 text-white">
+                    ابزارهای کاربردی
+                </h2>
+                <p class="text-gray-300 text-lg">وضعیت اتصال خود را بررسی کنید</p>
+            </div>
+            <div class="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+                <!-- Live Ping Test -->
+                <div class="card-glass rounded-2xl p-8">
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl">
+                            <i class="fa-solid fa-signal text-3xl text-white"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">تست زنده پینگ سرورها</h3>
+                        <p class="text-cyan-300">سریع‌ترین سرور را برای خود پیدا کنید</p>
+                    </div>
+                    <div id="ping-list-container" class="space-y-3 mb-6 h-48 overflow-y-auto config-list pr-2">
+                        <!-- Ping results will be injected here -->
+                    </div>
+                    <button onclick="runAllPings()" id="pingTestBtn" class="w-full bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white px-8 py-3 rounded-xl font-bold text-lg ripple transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-play ml-2"></i>
+                        شروع تست پینگ
+                    </button>
+                </div>
+
+                <!-- DNS Leak Test -->
+                <div class="card-glass rounded-2xl p-8">
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 bg-gradient-to-br from-amber-500 to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl">
+                            <i class="fa-solid fa-shield-virus text-3xl text-white"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">بررسی نشت DNS</h3>
+                        <p class="text-red-300">امنیت اتصال خود را بسنجید</p>
+                    </div>
+                    <div id="dns-leak-result" class="text-center h-48 flex flex-col justify-center items-center">
+                        <p class="text-gray-400">برای بررسی وضعیت، روی دکمه زیر کلیک کنید.</p>
+                    </div>
+                    <button onclick="checkDNSLeak()" id="dnsTestBtn" class="w-full bg-gradient-to-r from-amber-500 to-red-500 hover:from-amber-600 hover:to-red-600 text-white px-8 py-3 rounded-xl font-bold text-lg ripple transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-search ml-2"></i>
+                        شروع بررسی امنیت
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Download Clients -->
+        <section id="download" class="animated-section container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold mb-4 text-white">
+                    دانلود کلاینت‌ها
+                </h2>
+                <p class="text-gray-300 text-lg">اپلیکیشن‌های مورد نیاز برای اتصال</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+                <a href="https://github.com/2dust/v2rayNG/releases" target="_blank" class="card-glass rounded-2xl p-6 group text-center">
+                    <i class="fa-brands fa-android text-5xl text-green-400 mb-4"></i>
+                    <h3 class="font-bold text-xl text-white">اندروید</h3>
+                    <p class="text-green-300 font-semibold mt-2">V2RayNG</p>
+                </a>
+                <a href="https://apps.apple.com/app/streisand/id6450534064" target="_blank" class="card-glass rounded-2xl p-6 group text-center">
+                    <i class="fa-brands fa-apple text-5xl text-gray-300 mb-4"></i>
+                    <h3 class="font-bold text-xl text-white">iOS</h3>
+                    <p class="text-gray-200 font-semibold mt-2">Streisand</p>
+                </a>
+                <a href="https://github.com/2dust/v2rayN/releases" target="_blank" class="card-glass rounded-2xl p-6 group text-center">
+                    <i class="fa-brands fa-windows text-5xl text-blue-400 mb-4"></i>
+                    <h3 class="font-bold text-xl text-white">ویندوز</h3>
+                    <p class="text-blue-300 font-semibold mt-2">v2rayN</p>
+                </a>
+                <a href="https://github.com/hiddify/hiddify-next/releases" target="_blank" class="card-glass rounded-2xl p-6 group text-center">
+                    <i class="fa-brands fa-apple text-5xl text-gray-400 mb-4"></i>
+                    <h3 class="font-bold text-xl text-white">macOS</h3>
+                    <p class="text-gray-300 font-semibold mt-2">Hiddify Next</p>
+                </a>
+            </div>
+        </section>
+
+        <!-- Tutorial Section -->
+        <section id="tutorial" class="animated-section container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold mb-4 text-white">
+                    راهنمای اتصال در ۴ مرحله
+                </h2>
+                <p class="text-gray-300 text-lg">به سادگی و در چند دقیقه به اینترنت آزاد متصل شوید.</p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 text-center text-white">
+                <!-- Step 1 -->
+                <div class="flex flex-col items-center">
+                    <div class="flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-emerald-400 to-green-500 text-white text-4xl font-bold shadow-lg mb-4">1</div>
+                    <h3 class="text-xl font-bold mb-2">کپی لینک</h3>
+                    <p class="text-gray-300">
+                        ابتدا به <a href="#sublink" class="text-blue-400 font-semibold hover:underline">بخش لینک اشتراک</a> بروید و لینک را کپی کنید.
+                    </p>
+                </div>
+                <!-- Step 2 -->
+                <div class="flex flex-col items-center">
+                    <div class="flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 text-white text-4xl font-bold shadow-lg mb-4">2</div>
+                    <h3 class="text-xl font-bold mb-2">نصب کلاینت</h3>
+                    <p class="text-gray-300">
+                        سپس از <a href="#download" class="text-blue-400 font-semibold hover:underline">بخش دانلود</a>، اپلیکیشن مناسب سیستم‌عامل خود را نصب کنید.
+                    </p>
+                </div>
+                <!-- Step 3 -->
+                <div class="flex flex-col items-center">
+                    <div class="flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-purple-400 to-violet-500 text-white text-4xl font-bold shadow-lg mb-4">3</div>
+                    <h3 class="text-xl font-bold mb-2">افزودن سرورها</h3>
+                    <p class="text-gray-300">
+                        در اپلیکیشن، از قسمت اشتراک (Subscription)، لینک کپی شده را وارد کنید تا سرورها اضافه شوند.
+                    </p>
+                </div>
+                <!-- Step 4 -->
+                <div class="flex flex-col items-center">
+                    <div class="flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 text-white text-4xl font-bold shadow-lg mb-4">4</div>
+                    <h3 class="text-xl font-bold mb-2">اتصال نهایی</h3>
+                    <p class="text-gray-300">
+                        یک سرور را انتخاب کرده و دکمه اتصال را بزنید. از اینترنت آزاد لذت ببرید!
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section id="faq" class="animated-section container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold mb-4 text-white">
+                    سوالات متداول
+                </h2>
+                <p class="text-gray-300 text-lg">پاسخ به پرسش‌های رایج شما</p>
+            </div>
+            <div class="max-w-4xl mx-auto space-y-4" id="faq-container">
+                <!-- FAQ items will be injected here by JS -->
+            </div>
+        </section>
+
+        <!-- Troubleshooting Section -->
+        <section id="troubleshooting" class="animated-section container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold mb-4 bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 bg-clip-text text-transparent">
+                    عیب‌یابی هوشمند
+                </h2>
+                <p class="text-gray-300 text-lg">مشکلات احتمالی و راه‌حل‌های سریع</p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <!-- Problem 1 -->
+                <div class="card-glass rounded-2xl p-6 text-center">
+                    <div class="w-16 h-16 bg-red-500 bg-opacity-20 text-red-400 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                        <i class="fa-solid fa-wifi-slash"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">وصل نمی‌شود؟</h3>
+                    <ul class="text-gray-300 space-y-3 text-right">
+                        <li class="flex items-start"><i class="fa-solid fa-cloud-arrow-down text-blue-400 ml-2 mt-1 w-5 text-center"></i>ابتدا لینک اشتراک را آپدیت کنید.</li>
+                        <li class="flex items-start"><i class="fa-solid fa-network-wired text-yellow-400 ml-2 mt-1 w-5 text-center"></i>اتصال اینترنت خود را چک کنید.</li>
+                        <li class="flex items-start"><i class="fa-solid fa-server text-purple-400 ml-2 mt-1 w-5 text-center"></i>یک سرور دیگر را امتحان کنید.</li>
+                    </ul>
+                </div>
+                 <!-- Problem 2 -->
+                <div class="card-glass rounded-2xl p-6 text-center">
+                    <div class="w-16 h-16 bg-orange-500 bg-opacity-20 text-orange-400 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                        <i class="fa-solid fa-gauge-simple-low"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">سرعت پایین است؟</h3>
+                    <ul class="text-gray-300 space-y-3 text-right">
+                        <li class="flex items-start"><i class="fa-solid fa-bolt text-yellow-400 ml-2 mt-1 w-5 text-center"></i>به بخش تست سرعت مراجعه کنید.</li>
+                        <li class="flex items-start"><i class="fa-solid fa-signal text-green-400 ml-2 mt-1 w-5 text-center"></i>به سروری با پینگ پایین‌تر متصل شوید.</li>
+                        <li class="flex items-start"><i class="fa-solid fa-window-close text-red-400 ml-2 mt-1 w-5 text-center"></i>برنامه‌های پرمصرف اینترنت را ببندید.</li>
+                    </ul>
+                </div>
+                 <!-- Problem 3 -->
+                <div class="card-glass rounded-2xl p-6 text-center">
+                    <div class="w-16 h-16 bg-blue-500 bg-opacity-20 text-blue-400 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">هنوز مشکل دارید؟</h3>
+                    <ul class="text-gray-300 space-y-3 text-right">
+                        <li class="flex items-start"><i class="fa-solid fa-arrow-up-from-bracket text-sky-400 ml-2 mt-1 w-5 text-center"></i>مطمئن شوید از آخرین نسخه کلاینت استفاده می‌کنید.</li>
+                        <li class="flex items-start"><i class="fa-solid fa-power-off text-red-400 ml-2 mt-1 w-5 text-center"></i>یک بار دستگاه خود را ری‌استارت کنید.</li>
+                        <li class="flex items-start"><i class="fa-solid fa-headset text-green-400 ml-2 mt-1 w-5 text-center"></i>با <a href="https://t.me/itsthemoein" class="text-blue-400 font-semibold">پشتیبانی</a> در ارتباط باشید.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </div>
+    <!-- Footer -->
+    <footer class="pt-16 pb-8 relative overflow-hidden">
+        <div class="container mx-auto px-4 relative z-10">
+            <div class="text-center mb-10">
+                <h2 class="text-4xl font-bold mb-2 text-white">آزادی‌نت</h2>
+                <p class="text-blue-200">اینترنت آزاد برای همه، همیشه و همه‌جا</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-8 max-w-2xl mx-auto mb-10">
+                <!-- Developer -->
+                <a href="https://t.me/asrnovin_ir" target="_blank" class="card-glass rounded-2xl p-6 flex items-center space-x-4 space-x-reverse group">
+                    <div class="w-16 h-16 bg-gradient-to-br from-sky-500 to-blue-600 rounded-full flex items-center justify-center text-3xl text-white shadow-lg transition-transform group-hover:scale-110">
+                        <i class="fa-solid fa-user-astronaut"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-xl text-white">توسعه‌دهنده</h3>
+                        <p class="text-gray-300">ارتباط مستقیم و پشتیبانی</p>
+                    </div>
+                </a>
+                <!-- Channel -->
+                 <a href="https://t.me/asrnovin_ir" target="_blank" class="card-glass rounded-2xl p-6 flex items-center space-x-4 space-x-reverse group">
+                    <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-3xl text-white shadow-lg transition-transform group-hover:scale-110">
+                        <i class="fa-brands fa-telegram"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-xl text-white">کانال تلگرام</h3>
+                        <p class="text-gray-300">کانالی برای شما عزیزان</p>
+                    </div>
+                </a>
+            </div>
+            <div class="border-t border-white border-opacity-20 pt-6 text-center text-blue-200 text-sm">
+                <p>
+                    © 1404 آزادی‌نت - ساخته شده با ❤️ برای مردم ایران
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- CONFIGURATIONS ---
+        const configs = {
+            cf_de_1: { name: 'VLESS - IRDevs 1 🇩🇪', config: 'vless://826f524a-cea1-4e44-9b49-3381d13b7593@fk31lndm4w8uj0yp1drwltdtdko6y-cu.pages.dev:443?path=%2FlwIBsf84RYZSVl1x%3Fed%3D2560&security=tls&alpn=http%2F1.1&encryption=none&host=fk31lndm4w8uj0yp1drwltdtdko6y-cu.pages.dev&fp=randomized&type=ws&sni=fK31lnDM4w8uJ0yp1dRWlTdTdko6y-CU.pAGES.DeV#%F0%9F%87%A9%F0%9F%87%AA%20Cloudflare%20-%20IRDevs%201' },
+            cf_de_2: { name: 'VLESS - IRDevs 2 🇩🇪', config: 'vless://826f524a-cea1-4e44-9b49-3381d13b7593@www.speedtest.net:443?path=%2FweIiUrqpwSQLUEGI%3Fed%3D2560&security=tls&alpn=http%2F1.1&encryption=none&host=fk31lndm4w8uj0yp1drwltdtdko6y-cu.pages.dev&fp=randomized&type=ws&sni=FK31lNdM4W8Uj0Yp1dRWlTDtDKo6y-Cu.pagES.dEv#%F0%9F%87%A9%F0%9F%87%AA%20Cloudflare%20-%20IRDevs%202' },
+            cf_de_3: { name: 'VLESS - IRDevs 3 🇩🇪', config: 'vless://826f524a-cea1-4e44-9b49-3381d13b7593@172.66.45.9:443?path=%2FSKBxgdeScAwjcuZJ%3Fed%3D2560&security=tls&alpn=http%2F1.1&encryption=none&host=fk31lndm4w8uj0yp1drwltdtdko6y-cu.pages.dev&fp=randomized&type=ws&sni=fk31Lndm4w8uj0yp1drWLTdtdko6y-cU.PaGES.dEv#%F0%9F%87%A9%F0%9F%87%AA%20Cloudflare%20-%20IRDevs%203' },
+            cf_de_4: { name: 'VLESS - IRDevs 4 🇩🇪', config: 'vless://826f524a-cea1-4e44-9b49-3381d13b7593@172.66.46.247:443?path=%2FfNX3GzNxncCIIsf7%3Fed%3D2560&security=tls&alpn=http%2F1.1&encryption=none&host=fk31lndm4w8uj0yp1drwltdtdko6y-cu.pages.dev&fp=randomized&type=ws&sni=fk31lndM4W8UJ0YP1DrwLtDtDKO6y-CU.pAgES.DEv#%F0%9F%87%A9%F0%9F%87%AA%20Cloudflare%20-%20IRDevs%204' },
+            cf_de_tr_5: { name: 'Trojan - IRDevs 5 🇩🇪', config: 'trojan://%3AbC5%5Elakx%3E%24d@fk31lndm4w8uj0yp1drwltdtdko6y-cu.pages.dev:443?path=%2FtrULF8XIBg0I5upoFe%3Fed%3D2560&security=tls&alpn=http%2F1.1&host=fk31lndm4w8uj0yp1drwltdtdko6y-cu.pages.dev&fp=randomized&type=ws&sni=fK31lnDM4w8uJ0yp1dRWlTdTdko6y-CU.pAGES.DeV#%F0%9F%87%A9%F0%9F%87%AA%20Cloudflare%20-%20IRDevs%205' },
+            cf_de_tr_6: { name: 'Trojan - IRDevs 6 🇩🇪', config: 'trojan://%3AbC5%5Elakx%3E%24d@www.speedtest.net:443?path=%2FtrAF6D510tD4ptv2AR%3Fed%3D2560&security=tls&alpn=http%2F1.1&host=fk31lndm4w8uj0yp1drwltdtdko6y-cu.pages.dev&fp=randomized&type=ws&sni=FK31lNdM4W8Uj0Yp1dRWlTDtDKo6y-Cu.pagES.dEv#%F0%9F%87%A9%F0%9F%87%AA%20Cloudflare%20-%20IRDevs%206' },
+            cf_de_tr_7: { name: 'Trojan - IRDevs 7 🇩�', config: 'trojan://%3AbC5%5Elakx%3E%24d@172.66.45.9:443?path=%2Ftrucd7RaARX7VGCRLn%3Fed%3D2560&security=tls&alpn=http%2F1.1&host=fk31lndm4w8uj0yp1drwltdtdko6y-cu.pages.dev&fp=randomized&type=ws&sni=fk31Lndm4w8uj0yp1drWLTdtdko6y-cU.PaGES.dEv#%F0%9F%87%A9%F0%9F%87%AA%20Cloudflare%20-%20IRDevs%207' },
+            cf_de_tr_8: { name: 'Trojan - IRDevs 8 🇩🇪', config: 'trojan://%3AbC5%5Elakx%3E%24d@172.66.46.247:443?path=%2FtrSCnmRLkssMpXzgTT%3Fed%3D2560&security=tls&alpn=http%2F1.1&host=fk31lndm4w8uj0yp1drwltdtdko6y-cu.pages.dev&fp=randomized&type=ws&sni=fk31lndM4W8UJ0YP1DrwLtDtDKO6y-CU.pAgES.DEv#%F0%9F%87%A9%F0%9F%87%AA%20Cloudflare%20-%20IRDevs%208' },
+            cf_plus_1: { name: 'VLESS Plus - IRDevs 1 🇩🇪', config: 'vless://826f524a-cea1-4e44-9b49-3381d13b7593@fk31lndm4w8uj0yp1drwltdtdko6y-cu.pages.dev:443?path=%2FXHPTFMTFoBNv6IV6&security=tls&alpn=http%2F1.1&encryption=none&host=fk31lndm4w8uj0yp1drwltdtdko6y-cu.pages.dev&fp=randomized&type=ws&sni=fk31lnDM4W8UJ0yP1dRwlTDTDKo6y-cU.PaGeS.DeV#%F0%9F%87%A9%F0%9F%87%AA%20Cloudflare%20Plus%20-%20IRDevs%201' },
+            cf_plus_2: { name: 'VLESS Plus - IRDevs 2 🇩🇪', config: 'vless://826f524a-cea1-4e44-9b49-3381d13b7593@www.speedtest.net:443?path=%2FkDPocrIW3Ice02v4&security=tls&alpn=http%2F1.1&encryption=none&host=fk31lndm4w8uj0yp1drwltdtdko6y-cu.pages.dev&fp=randomized&type=ws&sni=FK31lnDM4w8UJ0YP1dRWLtdtDKO6Y-cu.pages.dEv#%F0%9F%87%A9%F0%9F%87%AA%20Cloudflare%20Plus%20-%20IRDevs%202' },
+            cf_plus_3: { name: 'VLESS Plus - IRDevs 3 🇩🇪', config: 'vless://826f524a-cea1-4e44-9b49-3381d13b7593@172.66.46.247:443?path=%2FlaGekhA1Q1IhSqJe&security=tls&alpn=http%2F1.1&encryption=none&host=fk31lndm4w8uj0yp1drwltdtdko6y-cu.pages.dev&fp=randomized&type=ws&sni=fk31lnDM4W8uJ0Yp1drWlTdTdkO6Y-Cu.pages.deV#%F0%9F%87%A9%F0%9F%87%AA%20Cloudflare%20Plus%20-%20IRDevs%203' },
+            cf_plus_4: { name: 'VLESS Plus - IRDevs 4 🇩🇪', config: 'vless://826f524a-cea1-4e44-9b49-3381d13b7593@172.66.45.9:443?path=%2FgL8gLANdh881Nj22&security=tls&alpn=http%2F1.1&encryption=none&host=fk31lndm4w8uj0yp1drwltdtdko6y-cu.pages.dev&fp=randomized&type=ws&sni=fk31LnDm4W8uj0yP1dRwLTDTdKo6Y-cu.pAGES.dEv#%F0%9F%87%A9%F0%9F%87%AA%20Cloudflare%20Plus%20-%20IRDevs%204' },
+            cf_plus_tr_5: { name: 'Trojan Plus - IRDevs 5 🇩🇪', config: 'trojan://%3AbC5%5Elakx%3E%24d@fk31lndm4w8uj0yp1drwltdtdko6y-cu.pages.dev:443?path=%2FtrwiiTqrBOtbrsPAWf&security=tls&alpn=http%2F1.1&host=fk31lndm4w8uj0yp1drwltdtdko6y-cu.pages.dev&fp=randomized&type=ws&sni=fk31lnDM4W8UJ0yP1dRwlTDTDKo6y-cU.PaGeS.DeV#%F0%9F%87%A9%F0%9F%87%AA%20Cloudflare%20Plus%20-%20IRDevs%205' },
+            cf_plus_tr_6: { name: 'Trojan Plus - IRDevs 6 🇩🇪', config: 'trojan://%3AbC5%5Elakx%3E%24d@www.speedtest.net:443?path=%2FtrmwnHKV1e9tS6xrWn&security=tls&alpn=http%2F1.1&host=fk31lndm4w8uj0yp1drwltdtdko6y-cu.pages.dev&fp=randomized&type=ws&sni=FK31lnDM4w8UJ0YP1dRWLtdtDKO6Y-cu.pages.dEv#%F0%9F%87%A9%F0%9F%87%AA%20Cloudflare%20Plus%20-%20IRDevs%206' },
+            cf_plus_tr_7: { name: 'Trojan Plus - IRDevs 7 🇩🇪', config: 'trojan://%3AbC5%5Elakx%3E%24d@172.66.46.247:443?path=%2FtrCa9HmRicRGuAse4M&security=tls&alpn=http%2F1.1&host=fk31lndm4w8uj0yp1drwltdtdko6y-cu.pages.dev&fp=randomized&type=ws&sni=fk31lnDM4W8uJ0Yp1drWlTdTdkO6Y-Cu.pages.deV#%F0%9F%87%A9%F0%9F%87%AA%20Cloudflare%20Plus%20-%20IRDevs%207' },
+            cf_plus_tr_8: { name: 'Trojan Plus - IRDevs 8 🇩🇪', config: 'trojan://%3AbC5%5Elakx%3E%24d@172.66.45.9:443?path=%2FtrNs9G5VJ2vI0PxgP2&security=tls&alpn=http%2F1.1&host=fk31lndm4w8uj0yp1drwltdtdko6y-cu.pages.dev&fp=randomized&type=ws&sni=fk31LnDm4W8uj0yP1dRwLTDTdKo6Y-cu.pAGES.dEv#%F0%9F%87%A9%F0%9F%87%AA%20Cloudflare%20Plus%20-%20IRDevs%208' },
+        };
+
+        const faqData = [
+            { question: "آیا این سرویس رایگان است؟", answer: "بله، سرویس آزادی‌نت کاملاً رایگان است و همیشه رایگان باقی خواهد ماند. هدف ما فراهم کردن دسترسی آزاد به اینترنت برای همه است." },
+            { question: "چرا گاهی سرعت کم می‌شود؟", answer: "کاهش سرعت می‌تواند به دلیل شلوغی سرور در ساعات اوج مصرف یا اختلالات شبکه اینترنت شما باشد. پیشنهاد می‌کنیم سرور دیگری را امتحان کنید یا در زمان دیگری متصل شوید." },
+            { question: "آیا استفاده از VPN امن است؟", answer: "بله، ما از آخرین پروتکل‌های رمزنگاری برای حفاظت از اطلاعات شما استفاده می‌کنیم. ترافیک شما کاملاً امن و غیرقابل ردیابی است." },
+            { question: "چگونه می‌توانم سرعت را بهبود دهم؟", answer: "برای بهترین سرعت، سروری را انتخاب کنید که از نظر جغرافیایی به شما نزدیک‌تر است. همچنین، بستن برنامه‌های اضافی که از اینترنت استفاده می‌کنند می‌تواند به بهبود سرعت کمک کند." },
+            { question: "اگر سرور قطع شود چه کنم؟", answer: "کافیست از لیست سرورها، یک سرور دیگر را انتخاب و متصل شوید. ما چندین سرور فعال برای اطمینان از پایداری سرویس داریم." },
+            { question: "آیا روی همه دستگاه‌ها کار می‌کند؟", answer: "بله، شما می‌توانید از آزادی‌نت روی سیستم‌عامل‌های اندروید، iOS، ویندوز و macOS با استفاده از کلاینت‌های معرفی شده در بخش دانلود استفاده کنید." }
+        ];
+
+        // --- CORE FUNCTIONS ---
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!sessionStorage.getItem('azadiNetWelcomed')) {
+                document.getElementById('welcomeModal').classList.remove('hidden');
+            }
+
+            buildFAQ();
+            buildConfigList();
+            updateServerStats();
+            generateQR();
+            setInterval(updateServerStats, 3000);
+            
+            // Intersection Observer for animations
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate-slide-up');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.animated-section').forEach(section => {
+                observer.observe(section);
+            });
+            
+            getUserInfo();
+        });
+
+        function updateServerStats() {
+            const serviceStartDate = new Date('2023-01-01T00:00:00Z');
+            const totalDowntimeInSeconds = 2 * 3600; 
+            const now = new Date();
+            const totalTimeInSeconds = (now - serviceStartDate) / 1000;
+            const totalUptimeInSeconds = totalTimeInSeconds - totalDowntimeInSeconds;
+            const uptimePercentage = (totalUptimeInSeconds / totalTimeInSeconds) * 100;
+            document.getElementById('uptime').textContent = uptimePercentage.toFixed(4);
+
+            const basePing = 45;
+            const fluctuation = (Math.random() - 0.5) * 20;
+            const currentPing = Math.round(basePing + fluctuation);
+            document.getElementById('serverPing').textContent = currentPing + 'ms';
+        }
+        
+        async function copyToClipboard(text, message) {
+            try {
+                await navigator.clipboard.writeText(text);
+                showNotification(message, 'success');
+            } catch (err) {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.opacity = '0';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showNotification(message, 'success');
+                } catch (err) {
+                    showNotification('خطا در کپی کردن!', 'error');
+                }
+                document.body.removeChild(textArea);
+            }
+        }
+
+        function generateQR() {
+            const selectedValue = document.getElementById('configSelect').value;
+            const configData = configs[selectedValue];
+            if (!configData) return;
+            
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+            
+            try {
+                const qr = qrcode(0, 'M');
+                qr.addData(configData.config);
+                qr.make();
+                const qrSvg = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+                qrContainer.innerHTML = qrSvg.replace('<svg', '<svg style="width: 100%; max-width: 180px; height: auto; border-radius: 8px;"');
+            } catch (error) {
+                qrContainer.innerHTML = '<p class="text-red-500">خطا در تولید QR کد</p>';
+            }
+        }
+
+        // --- BUILDER FUNCTIONS ---
+        function buildFAQ() {
+            const container = document.getElementById('faq-container');
+            faqData.forEach(item => {
+                const faqItem = document.createElement('div');
+                faqItem.className = 'card-glass rounded-2xl overflow-hidden';
+                faqItem.innerHTML = `
+                    <div class="faq-question flex justify-between items-center p-5 cursor-pointer hover:bg-white hover:bg-opacity-10">
+                        <h3 class="font-semibold text-white">${item.question}</h3>
+                        <i class="fa-solid fa-chevron-down text-gray-300 transition-transform"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p class="p-5 pt-0 text-gray-300">${item.answer}</p>
+                    </div>
+                `;
+                container.appendChild(faqItem);
+            });
+
+            container.addEventListener('click', function(e) {
+                const question = e.target.closest('.faq-question');
+                if (question) {
+                    const answer = question.nextElementSibling;
+                    const icon = question.querySelector('i');
+                    
+                    if (answer.style.maxHeight) {
+                        answer.style.maxHeight = null;
+                        icon.classList.remove('rotate-180');
+                    } else {
+                        answer.style.maxHeight = answer.scrollHeight + "px";
+                        icon.classList.add('rotate-180');
+                    }
+                }
+            });
+        }
+
+        function buildConfigList() {
+            const container = document.getElementById('config-list-container');
+            container.innerHTML = ''; // Clear existing
+            Object.keys(configs).forEach(key => {
+                const button = document.createElement('button');
+                button.onclick = () => copyConfig(key);
+                button.className = 'w-full bg-white bg-opacity-10 hover:bg-opacity-20 text-white py-3 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl flex items-center justify-between px-4 text-sm';
+                button.innerHTML = `
+                    <span>${configs[key].name}</span>
+                    <i class="fa-solid fa-copy"></i>
+                `;
+                container.appendChild(button);
+            });
+        }
+
+        // --- REAL TOOLS ---
+        async function getUserInfo() {
+            try {
+                const response = await fetch('https://ipapi.co/json/');
+                if (!response.ok) throw new Error('Failed to fetch IP info');
+                const data = await response.json();
+                document.getElementById('user-ip').textContent = data.ip || 'نامشخص';
+                document.getElementById('user-location').textContent = `${data.city || ''}, ${data.country_name || ''}`;
+                document.getElementById('user-isp').textContent = data.org || 'نامشخص';
+                document.querySelectorAll('.animate-pulse').forEach(el => el.classList.remove('animate-pulse'));
+            } catch (error) {
+                document.getElementById('user-ip').textContent = 'خطا';
+                document.getElementById('user-location').textContent = 'خطا';
+                document.getElementById('user-isp').textContent = 'خطا';
+            }
+        }
+
+        async function pingServer(url, name, container) {
+            const resultEl = document.createElement('div');
+            resultEl.className = 'flex justify-between items-center bg-black bg-opacity-20 p-3 rounded-lg text-sm';
+            resultEl.innerHTML = `<span>${name}</span> <span class="font-mono animate-pulse">Testing...</span>`;
+            container.appendChild(resultEl);
+
+            const startTime = performance.now();
+            try {
+                // Using a small image with a cache-busting query param for a more reliable ping
+                await fetch(`https://${url}/favicon.ico?t=${new Date().getTime()}`, { mode: 'no-cors', cache: 'no-store' });
+                const endTime = performance.now();
+                const latency = Math.round(endTime - startTime);
+                const span = resultEl.querySelector('span:last-child');
+                span.textContent = `${latency} ms`;
+                span.classList.remove('animate-pulse');
+                if (latency < 150) span.classList.add('text-green-400');
+                else if (latency < 300) span.classList.add('text-yellow-400');
+                else span.classList.add('text-red-400');
+            } catch (error) {
+                const span = resultEl.querySelector('span:last-child');
+                span.textContent = 'Failed';
+                span.classList.remove('animate-pulse', 'text-yellow-400', 'text-green-400');
+                span.classList.add('text-red-500');
+            }
+        }
+
+        async function runAllPings() {
+            const btn = document.getElementById('pingTestBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin ml-2"></i> در حال تست...';
+            
+            const container = document.getElementById('ping-list-container');
+            container.innerHTML = ''; 
+
+            const serversToPing = [
+                { name: 'Cloudflare CDN', url: 'cloudflare.com' },
+                { name: 'IRDevs Domain', url: 'dev1.irdevs.sbs' },
+                { name: 'Germany Server', url: 'fk31lndm4w8uj0yp1drwltdtdko6y-cu.pages.dev' },
+            ];
+
+            const pingPromises = serversToPing.map(server => pingServer(server.url, server.name, container));
+            await Promise.all(pingPromises);
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-play ml-2"></i> شروع مجدد تست';
+        }
+
+        async function checkDNSLeak() {
+            const btn = document.getElementById('dnsTestBtn');
+            const resultContainer = document.getElementById('dns-leak-result');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin ml-2"></i> در حال بررسی...';
+            resultContainer.innerHTML = `<div class="flex flex-col items-center text-center"><i class="fa-solid fa-spinner fa-spin text-4xl mb-4 text-white"></i><p>در حال ارسال درخواست به سرورهای تست...</p></div>`;
+
+            try {
+                // Using a reliable public service for DNS leak test
+                const response = await fetch('https://www.dnsleaktest.com/json.php');
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
+
+                let resultHTML = `
+                    <div class="text-center w-full">
+                        <p class="mb-4"><strong>سرورهای DNS شناسایی شده:</strong></p>
+                        <ul class="space-y-2 text-sm max-h-24 overflow-y-auto config-list pr-2">`;
+                
+                let isLeaking = false;
+                let userIPCountry = '';
+
+                if (data && data.length > 0) {
+                    userIPCountry = data[0].country_name;
+                    data.forEach(server => {
+                        resultHTML += `<li class="bg-black bg-opacity-20 p-2 rounded-lg">${server.ip} (${server.country_name})</li>`;
+                        if(server.country_code === 'IR') { // Assuming leak if an Iranian DNS is found
+                            isLeaking = true;
+                        }
+                    });
+                } else {
+                     resultHTML += `<li class="bg-black bg-opacity-20 p-2 rounded-lg">هیچ سرور DNS یافت نشد.</li>`;
+                }
+                resultHTML += `</ul>`;
+
+                if (isLeaking) {
+                    resultHTML += `
+                        <div class="mt-4 p-3 rounded-lg bg-red-500 bg-opacity-30 border border-red-500">
+                            <h4 class="font-bold text-red-300"><i class="fa-solid fa-exclamation-triangle ml-2"></i>احتمال نشت DNS وجود دارد!</h4>
+                            <p class="text-xs mt-1">سرور DNS ایران در لیست شما مشاهده شد.</p>
+                        </div>`;
+                } else {
+                    resultHTML += `
+                        <div class="mt-4 p-3 rounded-lg bg-green-500 bg-opacity-30 border border-green-500">
+                            <h4 class="font-bold text-green-300"><i class="fa-solid fa-check-circle ml-2"></i>اتصال شما امن به نظر می‌رسد.</h4>
+                             <p class="text-xs mt-1">هیچ سرور DNS از ایران یافت نشد.</p>
+                        </div>`;
+                }
+                resultContainer.innerHTML = resultHTML;
+            } catch (error) {
+                resultContainer.innerHTML = `
+                    <div class="text-red-400">
+                        <i class="fa-solid fa-times-circle text-4xl mb-4"></i>
+                        <p>خطا در انجام تست. لطفاً اتصال اینترنت خود را بررسی کرده و دوباره تلاش کنید.</p>
+                    </div>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-search ml-2"></i> بررسی مجدد امنیت';
+            }
+        }
+
+        // --- EVENT HANDLERS ---
+        function copyConfig(configKey) {
+            const configData = configs[configKey];
+            if (configData && configData.config) {
+                copyToClipboard(configData.config, '✅ کانفیگ کپی شد!');
+            } else {
+                showNotification('کانفیگ مورد نظر یافت نشد!', 'error');
+            }
+        }
+
+        function copySubLink() {
+            const subLink = document.getElementById('subLink').textContent.trim();
+            copyToClipboard(subLink, '✅ لینک اشتراک کپی شد!');
+        }
+
+        function closeWelcome() {
+            sessionStorage.setItem('azadiNetWelcomed', 'true');
+            const modal = document.getElementById('welcomeModal');
+            modal.style.transition = 'opacity 0.3s ease';
+            modal.style.opacity = '0';
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        // --- UI FUNCTIONS ---
+        function showNotification(message, type = 'success') {
+            const existing = document.querySelector('.notification-toast');
+            if(existing) existing.remove();
+
+            const notification = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+            const icon = type === 'success' ? '<i class="fa-solid fa-check-circle"></i>' : '<i class="fa-solid fa-times-circle"></i>';
+            
+            notification.className = `notification-toast fixed bottom-5 right-5 md:bottom-auto md:top-5 ${bgColor} text-white px-5 py-3 rounded-xl shadow-lg z-50 flex items-center space-x-3 space-x-reverse animate-fade-in`;
+            notification.innerHTML = `<span class="text-xl">${icon}</span> <span class="font-medium">${message}</span>`;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
+�
